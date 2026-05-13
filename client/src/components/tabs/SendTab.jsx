@@ -22,7 +22,7 @@ function buildWaUrl(phone, message, app) {
   const p = phone.replace(/^\+/, '');
   const text = encodeURIComponent(message);
   if (app === 'business') {
-    return `intent://send?phone=${p}&text=${text}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
+    return `intent://send?phone=${p}&text=${text}#Intent;action=android.intent.action.VIEW;scheme=whatsapp;package=com.whatsapp.w4b;end`;
   }
   return `https://wa.me/${p}?text=${text}`;
 }
@@ -69,7 +69,11 @@ export default function SendTab({ toast }) {
     try {
       await api.logSend(contact.id);
       await load();
-      window.open(url, '_blank');
+      if (waApp === 'business') {
+        window.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
       toast(`Opening WA for ${contact.name}`);
     } catch (e) {
       toast(e.message, 'error');

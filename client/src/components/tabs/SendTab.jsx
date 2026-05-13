@@ -18,6 +18,15 @@ const STATUS_BUTTONS = [
   { key: 'dnc',        icon: '✗',  label: 'DNC',        color: '#ef4444' },
 ];
 
+function buildWaUrl(phone, message, app) {
+  const p = phone.replace(/^\+/, '');
+  const text = encodeURIComponent(message);
+  if (app === 'business') {
+    return `intent://send/${p}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;action=android.intent.action.VIEW;S.browser_fallback_url=https://wa.me/${p}?text=${text};end`;
+  }
+  return `https://wa.me/${p}?text=${text}`;
+}
+
 export default function SendTab({ toast }) {
   const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -25,6 +34,12 @@ export default function SendTab({ toast }) {
   const [next, setNext] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [sending, setSending] = useState(null);
+  const [waApp, setWaApp] = useState(() => localStorage.getItem('waApp') || 'regular');
+
+  function switchApp(app) {
+    setWaApp(app);
+    localStorage.setItem('waApp', app);
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,8 +63,7 @@ export default function SendTab({ toast }) {
     if (!next) return toast('No active template or account available', 'error');
 
     const message = next.template.body.replace(/\[name\]|\(name\)/gi, contact.name);
-    const phone = contact.phone.replace(/^\+/, '');
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const url = buildWaUrl(contact.phone, message, waApp);
 
     setSending(contact.id);
     try {
@@ -83,6 +97,30 @@ export default function SendTab({ toast }) {
 
   return (
     <div style={{ padding: '12px 12px 80px' }}>
+      {/* WA app selector */}
+      <div style={{
+        display: 'flex', gap: 6, marginBottom: 12,
+        background: 'var(--bg3)', borderRadius: 8, padding: 4
+      }}>
+        {[
+          { key: 'regular',  label: 'WhatsApp' },
+          { key: 'business', label: 'WA Business' },
+        ].map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => switchApp(opt.key)}
+            style={{
+              flex: 1, padding: '7px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+              background: waApp === opt.key ? 'var(--green)' : 'transparent',
+              color: waApp === opt.key ? '#000' : 'var(--text-dim)',
+              transition: 'all 0.15s'
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {/* Next template info */}
       {next ? (
         <div style={{
@@ -138,6 +176,7 @@ export default function SendTab({ toast }) {
               key={c.id}
               contact={c}
               next={next}
+              waApp={waApp}
               expanded={expandedId === c.id}
               onToggleExpand={() => setExpandedId(expandedId === c.id ? null : c.id)}
               onSend={() => handleSend(c)}
@@ -151,9 +190,9 @@ export default function SendTab({ toast }) {
   );
 }
 
-function ContactCard({ contact, next, expanded, onToggleExpand, onSend, onStatus, sending }) {
+function ContactCard({ contact, next, waApp, expanded, onToggleExpand, onSend, onStatus, sending }) {
   const cfg = STATUS_CONFIG[contact.status];
-  const message = next?.template?.body?.replace(/\[name\]/gi, contact.name) || '';
+  const message = next?.template?.body?.replace(/\[name\]|\(name\)/gi, contact.name) || '';
 
   return (
     <div style={{
@@ -204,7 +243,7 @@ function ContactCard({ contact, next, expanded, onToggleExpand, onSend, onStatus
               opacity: (sending || !next) ? 0.5 : 1, width: '100%'
             }}
           >
-            {sending ? 'Opening…' : '💬 Send via WhatsApp'}
+            {sending ? 'Opening…' : `💬 Send via ${waApp === 'business' ? 'WA Business' : 'WhatsApp'}`}
           </button>
 
           {/* Status buttons */}

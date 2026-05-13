@@ -22,7 +22,8 @@ function buildWaUrl(phone, message, app) {
   const p = phone.replace(/^\+/, '');
   const text = encodeURIComponent(message);
   if (app === 'business') {
-    return `intent://send?phone=${p}&text=${text}#Intent;action=android.intent.action.VIEW;scheme=whatsapp;package=com.whatsapp.w4b;end`;
+    const fallback = encodeURIComponent(`https://play.google.com/store/apps/details?id=com.whatsapp.w4b`);
+    return `intent://send?phone=${p}&text=${text}#Intent;action=android.intent.action.VIEW;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${fallback};end`;
   }
   return `https://wa.me/${p}?text=${text}`;
 }

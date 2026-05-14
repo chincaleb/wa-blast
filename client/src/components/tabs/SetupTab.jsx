@@ -82,8 +82,14 @@ function ImportSection({ toast }) {
   }
 
   async function clearAll() {
-    if (!confirm('Delete ALL your contacts? This cannot be undone.')) return;
-    try { await api.deleteAllContacts(); toast('All contacts deleted'); }
+    if (!confirm('Clear ALL contacts? This cannot be undone.')) return;
+    try { await api.deleteAllContacts(); toast('Contacts cleared — ready for next blast'); }
+    catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function clearTemplates() {
+    if (!confirm('Clear ALL templates? This cannot be undone.')) return;
+    try { await api.deleteAllTemplates(); toast('Templates cleared — ready for next blast'); }
     catch (e) { toast(e.message, 'error'); }
   }
 
@@ -116,15 +122,20 @@ function ImportSection({ toast }) {
       </Card>
 
       <Card title="Danger Zone">
-        <button
-          onClick={clearAll}
-          style={{
-            width: '100%', padding: '10px', borderRadius: 8, fontSize: 13,
-            border: '1px solid var(--red)', color: 'var(--red)', background: 'transparent', fontWeight: 600
-          }}
-        >
-          Delete All My Contacts
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button
+            onClick={clearAll}
+            style={dangerBtn}
+          >
+            Clear All Contacts
+          </button>
+          <button
+            onClick={clearTemplates}
+            style={dangerBtn}
+          >
+            Clear All Templates
+          </button>
+        </div>
       </Card>
     </div>
   );
@@ -292,3 +303,7 @@ function Btn({ onClick, loading, children, extraStyle }) {
 }
 
 const lbl = { fontSize: 12, color: 'var(--text-dim)', display: 'block', marginBottom: 6 };
+const dangerBtn = {
+  width: '100%', padding: '10px', borderRadius: 8, fontSize: 13,
+  border: '1px solid var(--red)', color: 'var(--red)', background: 'transparent', fontWeight: 600, cursor: 'pointer'
+};

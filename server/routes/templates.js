@@ -46,4 +46,10 @@ router.delete('/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+router.delete('/', requireAuth, (req, res) => {
+  db.prepare('DELETE FROM templates').run();
+  db.prepare("UPDATE app_state SET value = '0' WHERE key = 'next_template_index'").run();
+  res.json({ ok: true });
+});
+
 module.exports = router;

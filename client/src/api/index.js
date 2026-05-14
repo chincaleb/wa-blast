@@ -57,6 +57,7 @@ export const api = {
   addTemplate: (body) => request('POST', '/templates', body),
   updateTemplate: (id, body) => request('PATCH', `/templates/${id}`, body),
   deleteTemplate: (id) => request('DELETE', `/templates/${id}`),
+  deleteAllTemplates: () => request('DELETE', '/templates'),
 
   getNext: () => request('GET', '/sends/next'),
   logSend: (contact_id) => request('POST', '/sends', { contact_id }),
